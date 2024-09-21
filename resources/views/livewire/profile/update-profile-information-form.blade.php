@@ -5,11 +5,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
+use Livewire\WithFileUploads;
 
-new class extends Component
-{
+new class extends Component {
+    use WithFileUploads;
     public string $name = '';
     public string $email = '';
+    public $image;
 
     /**
      * Mount the component.
@@ -30,9 +32,14 @@ new class extends Component
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+            'image' => ['nullable', 'image', 'max:1024'],
         ]);
 
         $user->fill($validated);
+        if ($this->image) {
+            $imagePath = $this->image->store('images', 'public');
+            $user->image = $imagePath;
+        }
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
@@ -74,23 +81,53 @@ new class extends Component
     </header>
 
     <form wire:submit="updateProfileInformation" class="mt-6 space-y-6">
+
+        <section class="text-gray-600 body-font">
+            <div class="container px-5 py-24 mx-auto flex flex-wrap">
+                <div class="mb-2 md:w-2/4">
+
+                    <div x-data="activateImagePreview()" class="mt-6">
+
+                        <div class="mb-6">
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                                for="multiple_files">Upload single file</label>
+                            <input wire:model="image"
+                                class="block w-full h-10.5 leading-9 rounded overflow-hidden text-sm text-gray-900 bg-gray-50 border border-gray-300 cursor-pointer dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                                id="single_file" accept="image/*" @change="showPreview(event, $refs.previewSingle)"
+                                type="file">
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">SVG, PNG, JPG
+                                or GIF (MAX. 800x400px).</p>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+            <div x-ref="previewSingle" class="mt-2"></div>
+        </section>
+
+
+        {{-- --------------------------------------------- --}}
         <div>
             <x-input-label for="name" :value="__('Name')" />
-            <x-text-input wire:model="name" id="name" name="name" type="text" class="mt-1 block w-full" required autofocus autocomplete="name" />
+            <x-text-input wire:model="name" id="name" name="name" type="text" class="mt-1 block w-full"
+                required autofocus autocomplete="name" />
             <x-input-error class="mt-2" :messages="$errors->get('name')" />
         </div>
 
         <div>
             <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" name="email" type="email" class="mt-1 block w-full" required autocomplete="username" />
+            <x-text-input wire:model="email" id="email" name="email" type="email" class="mt-1 block w-full"
+                required autocomplete="username" />
             <x-input-error class="mt-2" :messages="$errors->get('email')" />
 
-            @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
+            @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !auth()->user()->hasVerifiedEmail())
                 <div>
                     <p class="text-sm mt-2 text-gray-800">
                         {{ __('Your email address is unverified.') }}
 
-                        <button wire:click.prevent="sendVerification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <button wire:click.prevent="sendVerification"
+                            class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             {{ __('Click here to re-send the verification email.') }}
                         </button>
                     </p>
@@ -112,4 +149,20 @@ new class extends Component
             </x-action-message>
         </div>
     </form>
+    <script>
+        function activateImagePreview() {
+            return {
+                showPreview(event, previewBox) {
+                    previewBox.replaceChildren();
+
+                    for (const i in event.target.files) {
+                        let img = document.createElement('img');
+                        img.className = 'aspect-auto h-32 shadow';
+                        img.src = URL.createObjectURL(event.target.files[i]);
+                        previewBox.appendChild(img);
+                    }
+                }
+            }
+        }
+    </script>
 </section>

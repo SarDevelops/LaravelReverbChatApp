@@ -1,15 +1,14 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex-1 p:2 sm:p-6 justify-between flex flex-col h-screen">
+    <div class="flex-1 p:2 sm:p-6 justify-between flex flex-col">
         <div class="flex sm:items-center justify-between py-3 border-b-2 border-gray-400">
             <div class="relative flex items-center " style="padding: 5px 5px 5px 0!important">
-                <div class="relative" style="max-width: 25% !important">
+                <div class="relative w-10 h-10" style="max-width: 25% !important">
                     {{-- <span class="absolute text-green-500 right-0 bottom-0">
                         <svg width="20" height="20">
                             <circle cx="35" cy="35" r="35" fill="currentColor"></circle>
                         </svg>
                     </span> --}}
-                    <img src="https://images.unsplash.com/photo-1549078642-b2ba4bda0cdb?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=144&amp;h=144"
-                        alt="" class="rounded-full">
+                    <img src="{{ asset('storage/' . $user->image) }}" alt="" class="rounded-full">
                 </div>
                 <div class="flex flex-col leading-tight space-x-10">
                     <div class="text-2xl mt-1 flex items-center">
@@ -49,52 +48,45 @@
             </div>
         </div>
     </div>
-    {{-- ----------------------------------------------------------------------------------------------------------------------------- --}}
-    {{-- <div class="menu">
-        <div class="back"><i class="fa fa-chevron-left"></i> <img src="https://images.unsplash.com/photo-1549078642-b2ba4bda0cdb?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=144&amp;h=144"
-                draggable="false" /></div>
-        <div class="name">Alex</div>
-        <div class="last">18:09</div>
-    </div> --}}
-    <ol class="chat">
-        @foreach ($messages as $message)
-            @if ($message['sender']['name'] != auth()->user()->name)
-                <li class="other">
-                    <div class="avatar"><img
-                            src="https://images.unsplash.com/photo-1549078642-b2ba4bda0cdb?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=144&amp;h=144"
-                            draggable="false" /></div>
-                    <div class="container">
-                        <div class="arrow">
-                            <div class="outer"></div>
-                            <div class="inner"></div>
-                        </div>
-                        <div class="message-body">
-                            <p><b>: {{ $message['sender']['name'] }}</b>{{ $message['message'] }}</p>
-                        </div>
+    @foreach ($messages as $message)
+        @if ($message['sender']['name'] != auth()->user()->name)
+            <!-- Receiver Message -->
+            <div class="flex mb-4">
+                <div class="mr-2" style="margin-right: 10px">
+                    <img src="{{ asset('storage/' . $message['sender']['image']) }}" alt="Receiver Avatar"
+                        class="w-10 h-10 rounded-full">
+                </div>
+                <div x-data="formatDate()" class="bg-gray-200 text-gray-600 rounded-lg px-4 py-2">
+                    <p>
+                        {{-- <b>: {{ $message['sender']['name'] }}</b> --}}
+                        {{ $message['message'] }}</p>
+                    </p>
+                    <span class="text-xs" x-text="formatDate('{{ $message['created_at'] }}')"></span>
+                </div>
+            </div>
+        @else
+            <!-- Sender Message -->
+            <div class="flex justify-end mb-4">
+                <div class="bg-gray-800 text-white rounded-lg px-4 py-2" x-data="formatDate()">
+                    <p>{{ $message['message'] }}</p>
+                    <div style="text-align:end " class="text-xs">
+                        <span x-text="formatDate('{{ $message['created_at'] }}')"></span>
                     </div>
-                </li>
-            @else
-                <li class="self">
-                    <div class="avatar"><img
-                            src="https://images.unsplash.com/photo-1549078642-b2ba4bda0cdb?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=144&amp;h=144"
-                            draggable="false" /></div>
-                    <div class="container">
-                        <div class="arrow">
-                            <div class="outer"></div>
-                            <div class="inner"></div>
-                        </div>
-                        <div class="message-body">
-                            <p>{{ $message['message'] }} <b>: You</b></p>
-                        </div>
-                    </div>
-                </li>
-            @endif
-        @endforeach
-    </ol>
-    <form wire:submit="sendMessage()">
+                </div>
+                {{-- @dd($message['sender']) --}}
+                <div class="ml-2" style="margin-left: 10px">
+                    <img src="{{ asset('storage/' . $message['sender']['image']) }}" alt="Sender Avatar"
+                        class="w-10 h-10 rounded-full">
+                </div>
+            </div>
+        @endif
+    @endforeach
+
+    <form wire:submit="sendMessage()" style="position: relative;">
 
         <input type="text" placeholder="Your name" wire:model="message">
-        <button type="submit">
+
+        <button type="submit" style="position: absolute;top:18px;right:15px;">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor" class="size-6">
                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -102,5 +94,67 @@
             </svg>
 
         </button>
+        @error('message')
+            <span class="text-red-600">{{ $message }}</span>
+        @enderror
     </form>
+
+
+    <script>
+        function formatDate() {
+            return {
+                formatDate(dateString) {
+                    // Convert dateString to ISO format if it's not in ISO format
+                    const messageDate = new Date(dateString.replace(' ', 'T') + 'Z'); // Parse as UTC
+
+                    const currentDate = new Date();
+
+                    // Calculate the time difference in milliseconds
+                    const diffInMilliseconds = currentDate - messageDate;
+                    const diffInHours = diffInMilliseconds / (1000 * 60 * 60);
+
+                    // Time zone option for India (IST)
+                    const timeZoneOptions = {
+                        timeZone: 'Asia/Kolkata'
+                    };
+
+                    // If within 24 hours, show only the time in IST
+                    if (diffInHours < 24) {
+                        return messageDate.toLocaleTimeString('en-IN', {
+                            ...timeZoneOptions,
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                    }
+
+                    // If the message was sent yesterday
+                    if (this.isYesterday(messageDate, currentDate)) {
+                        return 'Yesterday';
+                    }
+
+                    // Otherwise, show the full date and time in IST
+                    return messageDate.toLocaleDateString('en-IN', {
+                        ...timeZoneOptions,
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true
+                    });
+                },
+
+                isYesterday(messageDate, currentDate) {
+                    // Get the date for yesterday
+                    const yesterday = new Date(currentDate);
+                    yesterday.setDate(yesterday.getDate() - 1);
+
+                    return messageDate.getDate() === yesterday.getDate() &&
+                        messageDate.getMonth() === yesterday.getMonth() &&
+                        messageDate.getFullYear() === yesterday.getFullYear();
+                }
+            }
+        }
+    </script>
 </div>

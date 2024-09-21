@@ -507,3 +507,8 @@ input[type=text]:focus {
     border-color: dodgerBlue;
     box-shadow: 0 0 8px 0 dodgerBlue;
 }
+
+img.imgPreview {
+    max-width: 250px;
+    max-height: 250px;
+}

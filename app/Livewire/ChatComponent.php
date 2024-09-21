@@ -20,6 +20,10 @@ class ChatComponent extends Component
         return view('livewire.chat-component');
     }
 
+    protected $rules = [
+        'message' => 'required',
+    ];
+
     public function mount($user_id)
     {
         $this->sender_id = auth()->user()->id;
@@ -31,7 +35,7 @@ class ChatComponent extends Component
         })->orWhere(function ($query) {
             $query->where('sender_id', $this->receiver_id)
                 ->where('receiver_id', $this->sender_id);
-        })->with('sender:id,name', 'receiver:id,name')->get();
+        })->with('sender:id,name,image,created_at', 'receiver:id,name,image,created_at')->get();
 
         foreach ($messages as $key => $message) {
             $this->appendChatMessage($message);
@@ -40,6 +44,8 @@ class ChatComponent extends Component
     }
     public function sendMessage()
     {
+        $this->validate();
+
         $chat = new Message();
         $chat->sender_id = $this->sender_id;
         $chat->receiver_id = $this->receiver_id;
@@ -53,7 +59,7 @@ class ChatComponent extends Component
     #[On('echo-private:chat-channel.{sender_id},MessageSendEvent')]
     public function listenForMessage($event)
     {
-        $chatMessage = Message::whereId($event['message']['id'])->with('sender:id,name', 'receiver:id,name')->first();
+        $chatMessage = Message::whereId($event['message']['id'])->with('sender:id,name,image', 'receiver:id,name,image')->first();
         $this->appendChatMessage($chatMessage);
     }
     public function appendChatMessage($message)
@@ -61,6 +67,7 @@ class ChatComponent extends Component
         $this->messages[] = [
             'id' => $message->id,
             'message' => $message->message,
+            'created_at' => $message->created_at,
             'sender' => $message->sender,
             'receiver' => $message->receiver,
         ];
