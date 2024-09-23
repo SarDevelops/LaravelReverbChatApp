@@ -44,4 +44,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function isActive()
+    {
+        return $this->is_active; // Check the is_active field
+    }
 }

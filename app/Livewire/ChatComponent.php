@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Events\MessageSendEvent;
+use App\Events\UserActivity;
 use App\Models\Message;
 use App\Models\User;
 use Livewire\Attributes\On;
@@ -52,7 +53,11 @@ class ChatComponent extends Component
         $chat->message = $this->message;
         $chat->save();
         $this->appendChatMessage($chat);
+        $user = auth()->user();
+        $user->save(['is_active' => true]);
         broadcast(new MessageSendEvent($chat))->toOthers();
+        broadcast(new UserActivity($user));
+
         $this->message = "";
     }
 

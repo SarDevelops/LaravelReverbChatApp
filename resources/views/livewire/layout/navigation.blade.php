@@ -41,10 +41,11 @@ new class extends Component {
                     <x-slot name="trigger">
                         <button
                             class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div class="m-1 mr-2 w-10 h-10 relative flex justify-center items-center rounded-full bg-gray-500 text-xl text-white"
+                            <div class="m-1 mr-2 w-10  relative flex justify-center items-center rounded-full bg-gray-500 text-xl text-white"
                                 style="margin-right: 10px">
                                 <img src="{{ asset('storage/' . auth()->user()->image) }}" class="rounded-full">
                                 <div class="absolute right-0 bottom-0 w-3 h-3 rounded-full bg-red-500"></div>
+                                {{-- <div class="absolute right-0 bottom-0 w-3 h-3 rounded-full bg-green-500"></div> --}}
                             </div>
                             <div class="" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name"
                                 x-on:profile-updated.window="name = $event.detail.name"></div>

@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome');
@@ -20,8 +19,7 @@ Route::view('/', 'welcome');
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard route
     Route::get('/dashboard', function () {
-        $users = User::where('id', '!=', auth()->id())->get();
-        return view('dashboard', ['users' => $users]);
+        return view('dashboard');
     })->name('dashboard');
 
     // Chat route with unique name
